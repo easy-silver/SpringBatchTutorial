@@ -21,5 +21,9 @@ public class JobLoggerListener implements JobExecutionListener {
     public void afterJob(JobExecution jobExecution) {
         BatchStatus status = jobExecution.getStatus();
         log.info(AFTER_MESSAGE, jobExecution.getJobInstance().getJobName(), status);
+
+        if (status == BatchStatus.FAILED) {
+            log.info("Job is Failed.");
+        }
     }
 }
