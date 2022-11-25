@@ -1,5 +1,6 @@
 package com.example.SpringBatchTutorial.job.dbdatareadwrite;
 
+import com.example.SpringBatchTutorial.core.domain.accounts.Accounts;
 import com.example.SpringBatchTutorial.core.domain.accounts.AccountsRepository;
 import com.example.SpringBatchTutorial.core.domain.orders.Orders;
 import com.example.SpringBatchTutorial.core.domain.orders.OrdersRepository;
@@ -11,9 +12,13 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
+import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
@@ -43,11 +48,16 @@ public class TrMigrationConfig {
 
     @JobScope
     @Bean
-    public Step trMigrationStep(ItemReader<Orders> trOrdersReader) {
+    public Step trMigrationStep(
+            ItemReader<Orders> trOrdersReader,
+            ItemProcessor<Orders, Accounts> trOrdersProcessor,
+            ItemWriter<Accounts> trOrdersWriter
+    ) {
         return stepBuilderFactory.get("trMigrationStep")
-                .<Orders, Orders>chunk(5)
+                .<Orders, Accounts>chunk(5)
                 .reader(trOrdersReader)
-                .writer(items -> items.forEach(System.out::println))
+                .processor(trOrdersProcessor)
+                .writer(trOrdersWriter)
                 .build();
     }
 
@@ -61,6 +71,21 @@ public class TrMigrationConfig {
                 .pageSize(5)
                 .arguments(Collections.emptyList())
                 .sorts(Collections.singletonMap("id", Sort.Direction.ASC))
+                .build();
+    }
+
+    @StepScope
+    @Bean
+    public ItemProcessor<Orders, Accounts> trOrdersProcessor() {
+        return Accounts::new;
+    }
+
+    @StepScope
+    @Bean
+    public RepositoryItemWriter<Accounts> trOrdersWriter() {
+        return new RepositoryItemWriterBuilder<Accounts>()
+                .repository(accountsRepository)
+                .methodName("save")
                 .build();
     }
 }

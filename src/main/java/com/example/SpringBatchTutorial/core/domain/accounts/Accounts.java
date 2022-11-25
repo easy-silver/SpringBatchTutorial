@@ -1,6 +1,8 @@
 package com.example.SpringBatchTutorial.core.domain.accounts;
 
+import com.example.SpringBatchTutorial.core.domain.orders.Orders;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.Entity;
@@ -9,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.LocalDate;
 
+@NoArgsConstructor
 @Getter
 @ToString
 @Entity
@@ -20,4 +23,12 @@ public class Accounts {
     private Integer price;
     private LocalDate orderDate;
     private LocalDate accountDate;
+
+    public Accounts(Orders orders) {
+        this.id = orders.getId();
+        this.orderItem = orders.getOrderItem();
+        this.price = orders.getPrice();
+        this.orderDate = orders.getOrderDate();
+        this.accountDate = LocalDate.now();
+    }
 }
