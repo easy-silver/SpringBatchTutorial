@@ -88,4 +88,10 @@ public class TrMigrationConfig {
                 .methodName("save")
                 .build();
     }
+
+    @StepScope
+    @Bean
+    public ItemWriter<Accounts> trOrdersWriterV2() {
+        return items -> items.forEach(accountsRepository::save);
+    }
 }
